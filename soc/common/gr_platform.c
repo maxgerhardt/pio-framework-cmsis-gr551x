@@ -55,6 +55,45 @@ void sdk_init();
 void soc_init();
 void warm_boot_process(void);
 
+#define APP_INFO_ADDR           (APP_CODE_RUN_ADDR+0x200)
+#define APP_INFO_PATTERN_VALUE  0x47525858
+#define APP_INFO_VERSION        0x1
+#define CHECK_SUM               (APP_INFO_PATTERN_VALUE+APP_INFO_VERSION+CHIP_VER+APP_CODE_LOAD_ADDR+APP_CODE_RUN_ADDR)
+
+#define MAX_COMMENTS_CNT        12
+#define MAX_RESERVED_1_CNT      6
+typedef struct __attribute((packed))
+{
+    uint32_t    app_pattern;
+    uint32_t    app_info_version;
+    uint32_t    chip_ver;
+    uint32_t    load_addr;
+    uint32_t    run_addr;
+    uint32_t    app_info_sum;
+    uint8_t     check_img;
+    uint8_t     boot_delay;
+    uint8_t     sec_cfg;
+    uint8_t     reserved0;
+    uint8_t     comments[MAX_COMMENTS_CNT];
+    uint32_t    reserved1[MAX_RESERVED_1_CNT];
+} APP_INFO_t;
+
+const APP_INFO_t BUILD_IN_APP_INFO __attribute__((section(".app_info"))) =
+{
+    .app_pattern      = APP_INFO_PATTERN_VALUE,
+    .app_info_version = APP_INFO_VERSION,
+    .chip_ver         = CHIP_VER,
+    .load_addr        = APP_CODE_LOAD_ADDR,
+    .run_addr         = APP_CODE_RUN_ADDR,
+    .app_info_sum     = CHECK_SUM,
+    .check_img        = BOOT_CHECK_IMAGE,
+    .boot_delay       = BOOT_LONG_TIME,
+    .sec_cfg          = SECURITY_CFG_VAL,
+#ifdef APP_INFO_COMMENTS
+    .comments         = APP_INFO_COMMENTS,
+#endif
+};
+
 void C_CONSTRUCTOR system_platform_init(void)
 {
     vector_table_init();
